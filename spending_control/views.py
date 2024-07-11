@@ -1,5 +1,5 @@
 from urllib.parse import urlparse
-
+from django.core.paginator import Paginator
 from django_filters.views import FilterView
 
 from spending_control.models import Spending
@@ -9,9 +9,9 @@ from spending_control.filters import SpendingFilter
 class SpendingListView(FilterView):
     template_name = 'spending_control/spending_list.html'
     context_object_name = 'spendings'
-    queryset = Spending.objects.all() # añadir ordenar por fecha de creación
+    queryset = Spending.objects.all().order_by('-created_at')
     filterset_class = SpendingFilter
-    # agregar paginacion de 10 elementos por página
+    pag_by = 10
     
 
     def get_context_data(self, **kwargs):
@@ -21,9 +21,7 @@ class SpendingListView(FilterView):
         base_url += '?page=1'
 
         
-        # agregar el siguiente listado de filtros al context de la vista
-        """ 
-        [
+        list_filter = [
             {'label': 'Ver todos', 'url': base_url},
             {'label': 'Pendiente de estado de cuenta',
                 'url': f'{base_url}&account_status=False'},
@@ -31,7 +29,6 @@ class SpendingListView(FilterView):
             {'label': 'Pendiente de conocimiento firmado',
                 'url': f'{base_url}&liquidation_certificate=False'},
         ]
-        """
+        context['filters'] = list_filter
         
         return context
-
