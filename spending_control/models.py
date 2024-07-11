@@ -18,7 +18,7 @@ class Spending(models.Model):
         related_name='spendings_registered')
     created_at = models.DateTimeField(auto_now_add=True)
     liquidations = models.ManyToManyField(
-        'liquidations.Liquidation',
+        'Liquidation',
         related_name='spendings_registered')
     liquidation_sent = models.FileField(
         upload_to='liquidation_sent/',
@@ -39,18 +39,35 @@ class Spending(models.Model):
         max_length=100,
         choices=STATUS.choices,
         default=STATUS.PENDING)
-
     totals_match = models.BooleanField(default=True)
     justification = models.TextField(null=True, blank=True)
 
     @property
     def can_generate_liquidation_certificate(self):
         if self.type == self.SPENDING_TYPE.INVOICED:
-            if self.liquidation_sent and self.account_status and self.invoice and (self.liquidation_certificate == '' or self.liquidation_certificate == None):
-                return True
+            required_fields_present = all([
+                self.liquidation_sent,
+                self.account_status,
+                self.invoice,
+                (self.liquidation_certificate is None or self.liquidation_certificate == '')
+            ])
         else:
-            if self.liquidation_sent and self.account_status and (self.liquidation_certificate == '' or self.liquidation_certificate == None):
-                return True
+            required_fields_present = all([
+                self.liquidation_sent,
+                self.account_status,
+                (self.liquidation_certificate is None or self.liquidation_certificate == '')
+            ])
+        return required_fields_present
 
     def __str__(self):
-        return f'{self.type} - {self.status}'
+        return f'Spending {self.id} - {self.description}'
+
+
+class Liquidation(models.Model):
+    date = models.DateField()
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.TextField()
+    approved = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'Liquidation {self.id} - Amount: {self.amount}'
