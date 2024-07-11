@@ -12,6 +12,7 @@ from openpyxl.styles import Protection
 from decimal import Decimal
 
 from pathlib import Path
+from django.urls import path
 
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.response import Response
@@ -39,7 +40,7 @@ def generate_liquidation_certificate(request, pk):
     instance = Spending.objects.get(pk=pk)
     liquidations = instance.liquidations.all()
 
-    file_path = rf'{settings.BASE_DIR}\spending_control\templates\spending_control\liquidation_certificate.xlsx'
+    file_path = Path(settings.BASE_DIR) / 'spending_control' / 'templates' / 'spending_control' / 'liquidation_certificate.xlsx'
     file_path = Path(file_path)
     
     buffer = io.BytesIO()
